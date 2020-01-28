@@ -1,7 +1,11 @@
 <template>
   <div>
-    <h1>Board</h1>
+    <div id="title">
+      <h1>Jeu de Go</h1>
+      <h1 class="exposant">Alpha</h1>
+    </div>
     <canvas id="game" width="600" height="600" @click="onGameClick" ref="boardElement"></canvas>
+    <img id="background" src="../assets/game/background.jpg" width="800" height="600" />
   </div>
 </template>
 
@@ -11,9 +15,7 @@ import { Component, Prop, Watch } from "vue-property-decorator";
 import {
   drawBoard,
   initializeBoard,
-  getGameElement,
   initializeBoardState,
-  getGameContext,
   handleBoardClick,
   IBoard
 } from "../game/game";
@@ -25,10 +27,11 @@ export default class Board extends Vue {
   data() {
     return {
       board: {
-          size: this.size,
-          boardId: 'game',
-          boardState: initializeBoardState(this.size),
-          margin: 40
+        size: this.size,
+        boardId: "game",
+        boardState: initializeBoardState(this.size),
+        groups: new Array(),
+        margin: 40
       } as IBoard
     };
   }
@@ -46,8 +49,9 @@ export default class Board extends Vue {
     }
   }
   onGameClick(e: MouseEvent) {
-    console.log(e.offsetX);
+    let debut = Date.now();
     this.$data.board = handleBoardClick(e, this.$data.board);
+    console.log(Date.now() - debut);
   }
 }
 </script>
@@ -55,5 +59,18 @@ export default class Board extends Vue {
 <style scoped>
 canvas {
   border: 1px black solid;
+}
+
+#title {
+  margin-bottom: 10px;
+}
+
+.exposant {
+  font-size: 0.5em;
+  vertical-align: bottom;
+}
+
+#title h1 {
+  display: inline;
 }
 </style>

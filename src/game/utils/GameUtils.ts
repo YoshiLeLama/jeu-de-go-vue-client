@@ -1,9 +1,7 @@
-import { IBoard } from '../game';
+import { IBoard, IGroupMember, Colors } from '../game';
 
-export function getGameElement(id: string = "game") {
-    let game = document.getElementsByTagName("canvas").namedItem(id);
-
-    console.log("yo", game);
+export function getGameElement(id: string = 'game') {
+    let game = document.getElementsByTagName('canvas').namedItem(id);
 
     if (game === null) {
         console.error(
@@ -20,7 +18,7 @@ export function getGameContext(game: HTMLCanvasElement | null) {
         return null;
     }
 
-    let ctx = game.getContext("2d");
+    let ctx = game.getContext('2d');
 
     if (ctx === null) {
         console.error(
@@ -68,3 +66,50 @@ export function getTileHeight(board: IBoard, height: number = -1) {
         return (el.height - 2 * board.margin) / (board.size - 1);
     }
 }
+/**
+ * Fonction permettant de récupérer les voisins d'une pierre du plateau.
+ * les voisins sont les pierres qui se trouvent sur les côtés de la pierre concernée.
+ *
+ * @param board Le plateau qui contient la pierre en question
+ * @param x L'abscisse de la pierre dont on veut savoir les voisins
+ * @param y L'ordonnée de la pierre dont on veut savoir les voisins
+ */
+export function getNeighbourRocks(board: IBoard, x: number, y: number) {
+    let neighbours: Array<IGroupMember> = new Array();
+
+    if (board.boardState[y][x + 1]) {
+        if (board.boardState[y][x + 1] !== Colors.none) {
+            neighbours.push({ x: x + 1, y: y });
+        }
+    }
+    if (board.boardState[y][x - 1]) {
+        if (board.boardState[y][x - 1] !== Colors.none) {
+            neighbours.push({ x: x - 1, y: y });
+        }
+    }
+    if (board.boardState[y + 1]) {
+        if (board.boardState[y + 1][x] !== Colors.none) {
+            neighbours.push({ x: x, y: y + 1 });
+        }
+    }
+    if (board.boardState[y - 1]) {
+        if (board.boardState[y - 1][x] !== Colors.none) {
+            neighbours.push({ x: x, y: y - 1 });
+        }
+    }
+
+    return neighbours;
+}
+
+export function clearBoardDraw(board: IBoard) {
+    let game = getGameElement(board.boardId);
+    let ctx = getGameContext(game);
+
+    if (ctx === null || game == null) {
+        return;
+    }
+
+    ctx.clearRect(0, 0, game.width, game.height);
+}
+
+export function addNewGroup(board: IBoard, group: Array<IGroupMember>) {}
