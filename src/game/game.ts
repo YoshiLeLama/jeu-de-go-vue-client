@@ -82,7 +82,6 @@ export function drawBoard(board: IBoard) {
     let tileWidth = getTileWidth(board, game.width);
 
     if (tileWidth === null) {
-        console.error('La largeur de la case a pour valeur null');
         return;
     }
 
@@ -100,7 +99,6 @@ export function drawBoard(board: IBoard) {
     let tileHeight = getTileHeight(board, game.height);
 
     if (tileHeight === null) {
-        console.error('La hauteur de la case a pour valeur null');
         return;
     }
 
@@ -303,10 +301,8 @@ export function checkCapture(board: IBoard, x: number, y: number): IBoard {
             neighbourRocks[index].y
         );
 
-        console.log('index', groupIndex);
         if (groupIndex !== -1) {
             board.groups[groupIndex].forEach(value => {
-                console.log(getDegreesOfLiberties(board, value.x, value.y));
                 if (getDegreesOfLiberties(board, value.x, value.y) > 0) {
                     isGroupCaptured = false;
                 }

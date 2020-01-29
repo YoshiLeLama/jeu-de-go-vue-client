@@ -147,7 +147,6 @@ export function getGroupIndex(board: IBoard, x: number, y: number): number {
     board.groups.forEach((value, index) => {
         value.forEach(rock => {
             if (rock.x === x && rock.y === y) {
-                console.log('ça marche');
                 indexOfRockGroup = index;
             }
         });
@@ -166,8 +165,6 @@ export function isMoveValid(board: IBoard, x: number, y: number): boolean {
         if (getDegreesOfLiberties(board, x, y) === 0) {
             let neighbours = getNeighbourRocks(board, x, y);
             neighbours.every(value => {
-                console.log(board.boardState[value.y][value.x], rockColor);
-
                 if (board.boardState[value.y][value.x] === rockColor) {
                     isMoveValid = true;
                     return false;
@@ -194,7 +191,6 @@ export function switchColorTurn(actualColor: Colors): Colors {
 
 export function removeGroup(board: IBoard, index: number): IBoard {
     board.groups[index].forEach(value => {
-        console.log('removeGroup:', value);
         board.boardState[value.y][value.x] = Colors.none;
     });
 
