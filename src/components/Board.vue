@@ -5,7 +5,6 @@
       <h1 class="exposant">Alpha</h1>
     </div>
     <canvas id="game" width="600" height="600" @click="onGameClick" ref="boardElement"></canvas>
-    <img id="background" src="../assets/game/background.jpg" width="800" height="600" />
   </div>
 </template>
 
