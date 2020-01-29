@@ -4,9 +4,6 @@ export function getGameElement(id: string = 'game') {
     let game = document.getElementsByTagName('canvas').namedItem(id);
 
     if (game === null) {
-        console.error(
-            `Il n'y a pas de Canvas ayant comme id ${id} dans la page`
-        );
         return null;
     }
 
@@ -21,9 +18,6 @@ export function getGameContext(game: HTMLCanvasElement | null) {
     let ctx = game.getContext('2d');
 
     if (ctx === null) {
-        console.error(
-            `Le contexte du Canvas d'id ${game.id} n'a pas pu être récupéré`
-        );
         return null;
     }
 
@@ -112,4 +106,97 @@ export function clearBoardDraw(board: IBoard) {
     ctx.clearRect(0, 0, game.width, game.height);
 }
 
-export function addNewGroup(board: IBoard, group: Array<IGroupMember>) {}
+export function getDegreesOfLiberties(board: IBoard, x: number, y: number) {
+    let degreesOfLiberties: number = 4;
+
+    if (board.boardState[y][x + 1]) {
+        if (board.boardState[y][x + 1] !== Colors.none) {
+            degreesOfLiberties--;
+        }
+    } else {
+        degreesOfLiberties--;
+    }
+    if (board.boardState[y][x - 1]) {
+        if (board.boardState[y][x - 1] !== Colors.none) {
+            degreesOfLiberties--;
+        }
+    } else {
+        degreesOfLiberties--;
+    }
+    if (board.boardState[y + 1]) {
+        if (board.boardState[y + 1][x] !== Colors.none) {
+            degreesOfLiberties--;
+        }
+    } else {
+        degreesOfLiberties--;
+    }
+    if (board.boardState[y - 1]) {
+        if (board.boardState[y - 1][x] !== Colors.none) {
+            degreesOfLiberties--;
+        }
+    } else {
+        degreesOfLiberties--;
+    }
+
+    return degreesOfLiberties;
+}
+
+export function getGroupIndex(board: IBoard, x: number, y: number): number {
+    let indexOfRockGroup = -1;
+
+    board.groups.forEach((value, index) => {
+        value.forEach(rock => {
+            if (rock.x === x && rock.y === y) {
+                console.log('ça marche');
+                indexOfRockGroup = index;
+            }
+        });
+    });
+
+    return indexOfRockGroup;
+}
+
+export function isMoveValid(board: IBoard, x: number, y: number): boolean {
+    let isMoveValid = false;
+
+    if (board.boardState[y][x] !== Colors.none) {
+        isMoveValid = false;
+    } else {
+        let rockColor = board.colorTurn;
+        if (getDegreesOfLiberties(board, x, y) === 0) {
+            let neighbours = getNeighbourRocks(board, x, y);
+            neighbours.every(value => {
+                console.log(board.boardState[value.y][value.x], rockColor);
+
+                if (board.boardState[value.y][value.x] === rockColor) {
+                    isMoveValid = true;
+                    return false;
+                } else {
+                    return true;
+                }
+            });
+        } else {
+            isMoveValid = true;
+        }
+    }
+
+    return isMoveValid;
+}
+
+export function switchColorTurn(actualColor: Colors): Colors {
+    if (actualColor === Colors.black) {
+        actualColor = Colors.white;
+    } else {
+        actualColor = Colors.black;
+    }
+    return actualColor;
+}
+
+export function removeGroup(board: IBoard, index: number): IBoard {
+    board.groups[index].forEach(value => {
+        console.log('removeGroup:', value);
+        board.boardState[value.y][value.x] = Colors.none;
+    });
+
+    return board;
+}

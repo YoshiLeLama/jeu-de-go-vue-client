@@ -16,7 +16,8 @@ import {
   initializeBoard,
   initializeBoardState,
   handleBoardClick,
-  IBoard
+  IBoard,
+  Colors
 } from "../game/game";
 
 @Component
@@ -30,7 +31,8 @@ export default class Board extends Vue {
         boardId: "game",
         boardState: initializeBoardState(this.size),
         groups: new Array(),
-        margin: 40
+        margin: 40,
+        colorTurn: Colors.black
       } as IBoard
     };
   }
@@ -48,9 +50,7 @@ export default class Board extends Vue {
     }
   }
   onGameClick(e: MouseEvent) {
-    let debut = Date.now();
     this.$data.board = handleBoardClick(e, this.$data.board);
-    console.log(Date.now() - debut);
   }
 }
 </script>
