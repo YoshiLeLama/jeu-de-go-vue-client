@@ -9,7 +9,11 @@ import {
     getGroupIndex,
     isMoveValid,
     switchColorTurn,
-    removeGroup
+    removeGroup,
+    getClickPosition,
+    getColor,
+    setColor,
+    getGroupColor
 } from './utils/GameUtils';
 
 const MAX_DEGREES_OF_LIBERTY = 4;
@@ -27,6 +31,12 @@ export interface IBoard {
     margin: number;
     groups: Array<Array<IGroupMember>>;
     colorTurn: Colors;
+    score: IScore;
+}
+
+export interface IScore {
+    whiteCaptured: number;
+    blackCaptured: number;
 }
 
 export interface IGroupMember {
@@ -130,7 +140,7 @@ export function drawRocks(board: IBoard) {
     let margin = board.margin;
     for (let y = 0; y < size; y++) {
         for (let x = 0; x < size; x++) {
-            let color = board.boardState[y][x];
+            let color = getColor(board, x, y);
             if (color !== Colors.none) {
                 ctx.beginPath();
                 ctx.rect(
@@ -173,8 +183,8 @@ export function handleBoardClick(e: MouseEvent, board: IBoard) {
         return null;
     }
 
-    let x = Math.floor((e.offsetX - board.margin) / tileWidth + 0.5);
-    let y = Math.floor((e.offsetY - board.margin) / tileHeight + 0.5);
+    let x = getClickPosition(e.offsetX, board.margin, tileWidth);
+    let y = getClickPosition(e.offsetY, board.margin, tileHeight);
 
     if (isMoveValid(board, x, y)) {
         board = placeRock(board, x, y);
@@ -184,7 +194,7 @@ export function handleBoardClick(e: MouseEvent, board: IBoard) {
 }
 
 export function placeRock(board: IBoard, x: number, y: number): IBoard {
-    board.boardState[y][x] = board.colorTurn;
+    setColor(board, x, y, board.colorTurn);
 
     // On met à jour l'état des groupes autour de la pierre posée
     board.groups = updateGroups(board, x, y);
@@ -227,12 +237,12 @@ export function updateGroups(
         board.groups.push(newGroup);
     } else {
         // On récupère la couleur de la pierre
-        const rockColor: Colors = board.boardState[y][x];
+        const rockColor: Colors = getColor(board, x, y);
 
         for (let i = 0; i < neighbours.length; i++) {
             let neighbourX = neighbours[i].x,
                 neighbourY = neighbours[i].y,
-                neighbourColor = board.boardState[neighbourY][neighbourX];
+                neighbourColor = getColor(board, neighbourX, neighbourY);
 
             for (let g = 0; g < board.groups.length; g++) {
                 board.groups[g].map(e => {
@@ -295,20 +305,35 @@ export function checkCapture(board: IBoard, x: number, y: number): IBoard {
     for (let index = 0; index < neighbourRocks.length; index++) {
         let isGroupCaptured = true;
 
+        // On récupère l'index du groupe d'une pierre voisine
         let groupIndex = getGroupIndex(
             board,
             neighbourRocks[index].x,
             neighbourRocks[index].y
         );
 
+        // Si l'index du groupe a été trouvé, on vérifie si le groupe a des degrés de liberté
         if (groupIndex !== -1) {
             board.groups[groupIndex].forEach(value => {
+                // Si le groupe a au moins un degré de liberté, le groupe n'est pas capturé
                 if (getDegreesOfLiberties(board, value.x, value.y) > 0) {
                     isGroupCaptured = false;
                 }
             });
 
+            // Si le groupe n'a pas de degré de liberté, il est capturé
             if (isGroupCaptured) {
+                let groupColor = getGroupColor(board, groupIndex);
+
+                // On modifie le nombre de pierres capturées selon la couleur du groupe capturé
+                if (groupColor === Colors.black) {
+                    board.score.blackCaptured +=
+                        board.groups[groupIndex].length;
+                } else if (groupColor === Colors.white) {
+                    board.score.whiteCaptured +=
+                        board.groups[groupIndex].length;
+                }
+                // On met à jour le plateau après avoir enlevé le groupe
                 board = removeGroup(board, groupIndex);
             }
         }

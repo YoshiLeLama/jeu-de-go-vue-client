@@ -106,7 +106,11 @@ export function clearBoardDraw(board: IBoard) {
     ctx.clearRect(0, 0, game.width, game.height);
 }
 
-export function getDegreesOfLiberties(board: IBoard, x: number, y: number) {
+export function getDegreesOfLiberties(
+    board: IBoard,
+    x: number,
+    y: number
+): number {
     let degreesOfLiberties: number = 4;
 
     if (board.boardState[y][x + 1]) {
@@ -158,21 +162,29 @@ export function getGroupIndex(board: IBoard, x: number, y: number): number {
 export function isMoveValid(board: IBoard, x: number, y: number): boolean {
     let isMoveValid = false;
 
+    // On vérifie si l'intersection est vide
     if (board.boardState[y][x] !== Colors.none) {
         isMoveValid = false;
     } else {
         let rockColor = board.colorTurn;
+        // On vérifie si la pierre n'aura pas de degré de liberté
         if (getDegreesOfLiberties(board, x, y) === 0) {
             let neighbours = getNeighbourRocks(board, x, y);
-            neighbours.every(value => {
-                if (board.boardState[value.y][value.x] === rockColor) {
-                    isMoveValid = true;
-                    return false;
-                } else {
-                    return true;
-                }
-            });
+
+            // On vérifie si les groupes voisins de la pierre ont des degrés de liberté
+            isMoveValid = neighbours.some(
+                value =>
+                    getColor(board, value.x, value.y) === rockColor &&
+                    hasGroupDegreesOfLiberty(
+                        board,
+                        getGroupIndex(board, value.x, value.y),
+                        x,
+                        y,
+                        board.colorTurn
+                    )
+            );
         } else {
+            // Si la pierre aura des degrés de liberté, le mouvement est valide
             isMoveValid = true;
         }
     }
@@ -189,10 +201,83 @@ export function switchColorTurn(actualColor: Colors): Colors {
     return actualColor;
 }
 
-export function removeGroup(board: IBoard, index: number): IBoard {
-    board.groups[index].forEach(value => {
+export function removeGroup(board: IBoard, groupIndex: number): IBoard {
+    // On change la valeur de chaque pierre du groupe en non-pierre
+    board.groups[groupIndex].forEach(value => {
         board.boardState[value.y][value.x] = Colors.none;
     });
 
+    // On crée un nouveau tableau de groupes temporaire
+    let newGroups = new Array<Array<IGroupMember>>();
+
+    // On ajoute tous les groupes de l'ancien tableau sauf celui que l'on veut retirer
+    board.groups.forEach((value, index) => {
+        if (index !== groupIndex) {
+            newGroups.push(value);
+        }
+    });
+
+    board.groups = newGroups;
+
     return board;
+}
+
+export function getClickPosition(
+    offset: number,
+    margin: number,
+    tileWidthOrHeight: number
+): number {
+    // Formule inventée
+    return Math.floor((offset - margin) / tileWidthOrHeight + 0.5);
+}
+
+export function getColor(board: IBoard, x: number, y: number): Colors {
+    return board.boardState[y][x];
+}
+
+export function getGroupColor(board: IBoard, index: number) {
+    // On récupère la première pierre du groupe
+    let firstMember = board.groups[index][0];
+    let firstMemberColor = getColor(board, firstMember.x, firstMember.y);
+
+    // Si jamais la pierre n'existe pas (peu probable), on retourne une non-pierre
+    if (firstMemberColor === null) {
+        return Colors.none;
+    }
+
+    return firstMemberColor;
+}
+
+export function setColor(
+    board: IBoard,
+    x: number,
+    y: number,
+    color: Colors
+): IBoard {
+    board.boardState[y][x] = color;
+    return board;
+}
+
+export function hasGroupDegreesOfLiberty(
+    board: IBoard,
+    groupIndex: number,
+    newRockX: number,
+    newRockY: number,
+    color: Colors
+): boolean {
+    // On ajoute temporairement la pierre au plateau
+    setColor(board, newRockX, newRockY, color);
+
+    // On récupère le groupe dont on veut connaître les degrés de liberté
+    const group = board.groups[groupIndex];
+
+    // Le groupe a 1+ degré(s) de liberté si au moins une de ses pièces a 1+ degré(s) de liberté
+    const hasLiberty = group.some(
+        value => getDegreesOfLiberties(board, value.x, value.y) > 0
+    );
+
+    // On retire la pierre du plateau
+    setColor(board, newRockX, newRockY, Colors.none);
+
+    return hasLiberty;
 }

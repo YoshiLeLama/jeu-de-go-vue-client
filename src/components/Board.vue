@@ -4,6 +4,10 @@
       <h1>Jeu de Go</h1>
       <h1 class="exposant">Alpha</h1>
     </div>
+    <div id="score">
+      <p id="white-captured">White captured : {{board.score.whiteCaptured}}</p>
+      <p id="black-captured">Black captured : {{board.score.blackCaptured}}</p>
+    </div>
     <canvas id="game" width="600" height="600" @click="onGameClick" ref="boardElement"></canvas>
   </div>
 </template>
@@ -32,7 +36,8 @@ export default class Board extends Vue {
         boardState: initializeBoardState(this.size),
         groups: new Array(),
         margin: 40,
-        colorTurn: Colors.black
+        colorTurn: Colors.black,
+        score: { whiteCaptured: 0, blackCaptured: 0 }
       } as IBoard
     };
   }
